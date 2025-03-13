@@ -5,6 +5,8 @@ import cynthia_websites_mini_server/config
 import cynthia_websites_mini_server/database
 import cynthia_websites_mini_server/static_routes
 import cynthia_websites_mini_server/web
+import cynthia_websites_mini_server/web/comments
+import cynthia_websites_mini_shared/configtype
 import gleam/option.{None, Some}
 import gleamy_lights/console
 import gleamy_lights/premixed
@@ -27,14 +29,13 @@ pub fn main() {
     <> premixed.text_bright_orange(process.cwd())
     <> "!",
   )
-  let #(db, _conf) = config.load()
+  let #(db, conf) = config.load()
   console.log("Starting server...")
   let assert Ok(_) =
     bun.serve(ServeOptions(
-      // TODO: Add hostname and port to the config file once flat config turns 3d
       development: Some(True),
-      hostname: None,
-      port: None,
+      hostname: conf.server_host,
+      port: conf.server_port,
       static_served: static_routes.static_routes(db),
       handler: web.handle_request(_, db),
       id: None,
@@ -43,8 +44,22 @@ pub fn main() {
   console.log("Server started!")
   global.set_interval(60_000, fn() {
     // This function is called every minute
-    let assert Ok(co) = database.get__entire_global_config(db)
+    let co =
+      configtype.SharedCynthiaConfigGlobalOnly(
+        global_theme: conf.global_theme,
+        global_theme_dark: conf.global_theme_dark,
+        global_colour: conf.global_colour,
+        global_site_name: conf.global_site_name,
+        global_site_description: conf.global_site_description,
+        server_port: conf.server_port,
+        server_host: conf.server_host,
+        posts_comments: conf.posts_comments,
+      )
     config.update_content_in_db(db, co)
+    Nil
+  })
+  global.set_interval(40_000, fn() {
+    comments.periodic_write_to_file(db)
     Nil
   })
 }

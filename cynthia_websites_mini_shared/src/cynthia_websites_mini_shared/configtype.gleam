@@ -8,6 +8,9 @@ pub type SharedCynthiaConfig {
     global_colour: String,
     global_site_name: String,
     global_site_description: String,
+    server_port: Option(Int),
+    server_host: Option(String),
+    posts_comments: Bool,
     content: List(Contents),
   )
 }
@@ -76,6 +79,9 @@ pub fn shared_merge_shared_cynthia_config(
     global_colour: orig.global_colour,
     global_site_name: orig.global_site_name,
     global_site_description: orig.global_site_description,
+    server_port: orig.server_port,
+    server_host: orig.server_host,
+    posts_comments: orig.posts_comments,
     content:,
   )
 }

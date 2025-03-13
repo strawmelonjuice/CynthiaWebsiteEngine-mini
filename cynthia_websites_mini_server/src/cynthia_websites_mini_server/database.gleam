@@ -91,6 +91,28 @@ pub fn save_complete_config(
   db: sqlite.Database,
   conf: configtype.SharedCynthiaConfig,
 ) {
+  // Check if comments are enabled, if so, create their table
+  case conf.posts_comments {
+    True -> {
+      sqlite.exec(
+        db,
+        "
+        CREATE TABLE IF NOT EXISTS comments (
+          comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          comment TEXT NOT NULL,
+          title TEXT NOT NULL,
+          post_permalink TEXT NOT NULL,
+        )
+      ",
+      )
+      Nil
+    }
+    False -> {
+      // sqlite.exec(db, "DROP TABLE IF EXISTS comments;")
+      Nil
+    }
+  }
+
   // First, save the global config
   let statement =
     sqlite.prepare(
